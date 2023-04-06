@@ -2,20 +2,27 @@ using Raylib_cs;
 
 public class Bot
 {
-    public Rectangle botPlace = new Rectangle(1820, 600, 100, 200);
+    public Rectangle botPlace;
     public int botChoice = 0;
+    public int bYMax = 0;
+    public string bCName;
     int running = 0;
     public Texture2D botCharacter;
     public float speed;
     public int hp;
     public int hpMax;
-    public int punchDamage;
+    public int punchDamageMax;
+    public int punchDamageMin;
     public float knockback;
     public float knockbackMax;
+    public float knockbackMin;
     public float punchCooldown;
     public float punchCooldownMax;
     public float jumpPower;
     public float jumpPowerMax;
+    public float jumpPowerMin;
+    public float punchingLeftXPunch;
+    public float punchingLeftXJumpPunch;
     public int loadBotCharacter = 0;
     public int botIsJumping = 0;
     public int botIsCrouching = 0;
@@ -26,17 +33,17 @@ public class Bot
     float timer;
     Random generator = new Random();
 
-    public enum Direction {left, right};
+    public enum Direction { left, right };
 
     public Direction looking = Direction.right;
 
     public void OutOfBounds(Bot bCharacter)
     {
-        if(bCharacter.botPlace.x <= 0)
+        if (bCharacter.botPlace.x <= 0)
         {
             bCharacter.botPlace.x = 0;
         }
-        if(bCharacter.botPlace.x >= 1820)
+        if (bCharacter.botPlace.x >= 1820)
         {
             bCharacter.botPlace.x = 1820;
         }
@@ -48,7 +55,6 @@ public class Bot
         looking = Direction.left;
         botHit = 0;
         bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterLeft.png");
-        bCharacter.botPlace = new Rectangle(1820, 600, 100, 200);
         botChoice = 0;
     }
     //Drawing health
@@ -74,42 +80,42 @@ public class Bot
     //Escaping when on low hp(determined by randomiser if it retreats or not)
     public void Retreat(Player pCharacter, Bot bCharacter)
     {
-        if(timer <= 3)
+        if (timer <= 3)
         {
             timer += Raylib.GetFrameTime();
         }
-        if(timer >= 3)
+        if (timer >= 3)
         {
             run = generator.Next(1, 4);
         }
-        if(run == 1)
+        if (run == 1)
         {
             running = 1;
             run = 0;
-            if(timer >= 3)
+            if (timer >= 3)
             {
-                timer = generator.Next(1,3);
+                timer = generator.Next(1, 3);
             }
         }
-        else if(run == 2)
+        else if (run == 2)
         {
             running = 0;
             run = 0;
-            if(timer >= 3)
+            if (timer >= 3)
             {
-                timer = generator.Next(0,2);
+                timer = generator.Next(0, 2);
             }
         }
-        else if(run == 3)
+        else if (run == 3)
         {
             running = 2;
             run = 0;
-            if(timer >= 3)
+            if (timer >= 3)
             {
                 timer = 2.5f;
             }
         }
-        if(running == 1)
+        if (running == 1)
         {
             //moving away from the player depending on which side the player is on
             if (pCharacter.playerPlace.x > bCharacter.botPlace.x + 100)
@@ -121,17 +127,17 @@ public class Bot
                 bCharacter.botPlace.x += speed;
             }
         }
-        else if(running == 0)
+        else if (running == 0)
         {
             Move(pCharacter, bCharacter);
         }
         //Keeping the bot from escaping
         //it stops a little before the actual edge of the screen so that it might be able to escape if the player moves all the way to the edge
-        if(bCharacter.botPlace.x >= 1820)
+        if (bCharacter.botPlace.x >= 1820)
         {
             bCharacter.botPlace.x = 1820;
         }
-        else if(bCharacter.botPlace.x <= 0)
+        else if (bCharacter.botPlace.x <= 0)
         {
             bCharacter.botPlace.x = 0;
         }
@@ -139,7 +145,7 @@ public class Bot
     //Jumping
     public void Jumping(Bot bCharacter, Player pCharacter)
     {
-        if(bCharacter.botPlace.y < pCharacter.playerPlace.y)
+        if (pCharacter.playerPlace.y < pCharacter.pYMax)
         {
             jump = generator.Next(1, 100);
         }
@@ -167,9 +173,9 @@ public class Bot
                 botIsJumping = 0;
                 //Load Character Sprite
                 loadBotCharacter = 1;
-                bCharacter.botPlace.y = 600;
+                bCharacter.botPlace.y = bCharacter.bYMax;
                 bCharacter.jumpPower = bCharacter.jumpPowerMax;
-                if(botIsPunching == 1)
+                if (botIsPunching == 1)
                 {
                     botIsPunching = 0;
                 }
@@ -211,126 +217,153 @@ public class Bot
         //all the sprites for looking right
         if (looking == Direction.right && loadBotCharacter == 1)
         {
-            //idle
-            if (botIsPunching == 0 && botIsJumping == 0 && botIsCrouching == 0)
-            {
-                bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterRight.png");
-                bCharacter.botPlace.width = bCharacter.botCharacter.width;
-                bCharacter.botPlace.height = bCharacter.botCharacter.height;
-            }
-            else if (botIsJumping == 1 && botIsPunching == 0)
-            {
-                //jumping
-                bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterJumpingRight.png");
-                bCharacter.botPlace.width = bCharacter.botCharacter.width;
-                bCharacter.botPlace.height = bCharacter.botCharacter.height;
-            }
-            else if (botIsJumping == 1 && botIsPunching == 1)
-            {
-                //jumping and punching
-                bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterJumpPunchRight.png");
-                bCharacter.botPlace.width = bCharacter.botCharacter.width;
-                bCharacter.botPlace.height = bCharacter.botCharacter.height;
-                if (Raylib.CheckCollisionRecs(bCharacter.botPlace, pCharacter.playerPlace))
-                {
-                    //if bot hits the player when punching
-                    pCharacter.hp -= bCharacter.punchDamage;
-                    botHit = 1;
-                }
-            }
-            else if (botIsPunching == 1)
-            {
-                //just punching on ground
-                bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterPunchingRight.png");
-                bCharacter.botPlace.width = bCharacter.botCharacter.width;
-                bCharacter.botPlace.height = bCharacter.botCharacter.height;
-                //Damage for punching
-                if (Raylib.CheckCollisionRecs(bCharacter.botPlace, pCharacter.playerPlace))
-                {
-                    //if the bot hits the player while punching
-                    pCharacter.hp -= bCharacter.punchDamage;
-                    botHit = 1;
-                }
-            }
-            //no longer loading the character
-            loadBotCharacter = 0;
+            RightSprites(pCharacter, bCharacter, bot);
         }
         //Loading the character sprites if the bot is looking left
         if (looking == Direction.left && loadBotCharacter == 1)
         {
-            //idle
-            if (botIsPunching == 0 && botIsJumping == 0 && botIsCrouching == 0)
+            LeftSprites(pCharacter, bCharacter, bot);
+        }
+        bCharacter.botPlace.width = bCharacter.botCharacter.width;
+        bCharacter.botPlace.height = bCharacter.botCharacter.height;
+        //no longer loading the sprites for the bot
+        loadBotCharacter = 0;
+    }
+
+    private void LeftSprites(Player pCharacter, Bot bCharacter, string bot)
+    {
+        //idle
+        if (botIsPunching == 0 && botIsJumping == 0 && botIsCrouching == 0)
+        {
+            bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterLeft.png");
+
+        }
+        else if (botIsJumping == 1 && botIsPunching == 0)
+        {
+            //jumping
+            bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterJumpingLeft.png");
+        }
+        else if (botIsJumping == 1 && botIsPunching == 1)
+        {
+            //jumping and punching
+            bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterJumpPunchLeft.png");
+            bCharacter.botPlace.x -= 50;
+            if (Raylib.CheckCollisionRecs(bCharacter.botPlace, pCharacter.playerPlace))
             {
-                bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterLeft.png");
-                bCharacter.botPlace.width = bCharacter.botCharacter.width;
-                bCharacter.botPlace.height = bCharacter.botCharacter.height;
+                //if the bot hits the player while punching
+                pCharacter.hp -= generator.Next(bCharacter.punchDamageMin, bCharacter.punchDamageMax);
+                botHit = 1;
             }
-            else if (botIsJumping == 1 && botIsPunching == 0)
+        }
+        else if (botIsPunching == 1)
+        {
+            //if punching
+            bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterPunchingLeft.png");
+            //moving it a little bit so it actually punches that way
+            bCharacter.botPlace.x -= 100;
+            if (Raylib.CheckCollisionRecs(bCharacter.botPlace, pCharacter.playerPlace))
             {
-                //jumping
-                bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterJumpingLeft.png");
-                bCharacter.botPlace.width = bCharacter.botCharacter.width;
-                bCharacter.botPlace.height = bCharacter.botCharacter.height;
+                //if the bot hits the player while punching
+                pCharacter.hp -= generator.Next(bCharacter.punchDamageMin, bCharacter.punchDamageMax);
+                botHit = 1;
             }
-            else if (botIsJumping == 1 && botIsPunching == 1)
-            {
-                //jumping and punching
-                bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterJumpPunchLeft.png");
-                bCharacter.botPlace.width = bCharacter.botCharacter.width;
-                bCharacter.botPlace.height = bCharacter.botCharacter.height;
-                bCharacter.botPlace.x -= 50;
-                if (Raylib.CheckCollisionRecs(bCharacter.botPlace, pCharacter.playerPlace))
-                {
-                    //if the bot hits the player while punching
-                    pCharacter.hp -= bCharacter.punchDamage;
-                    botHit = 1;
-                }
-            }
-            else if (botIsPunching == 1)
-            {
-                //if punching
-                bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterPunchingLeft.png");
-                bCharacter.botPlace.width = bCharacter.botCharacter.width;
-                bCharacter.botPlace.height = bCharacter.botCharacter.height;
-                //moving it a little bit so it actually punches that way
-                bCharacter.botPlace.x -= 100;
-                if (Raylib.CheckCollisionRecs(bCharacter.botPlace, pCharacter.playerPlace))
-                {
-                    //if the bot hits the player while punching
-                    pCharacter.hp -= bCharacter.punchDamage;
-                    botHit = 1;
-                }
-            }
-            //no longer loading the sprites for the bot
-            loadBotCharacter = 0;
         }
     }
-    public void BotsCharacter(Bot b, Bot bAce, Bot bIce, Bot bEdgy, Bot bTokyo, ref Bot bCharacter, ref string bot, int botChoice)
+
+    private void RightSprites(Player pCharacter, Bot bCharacter, string bot)
+    {
+        //idle
+        if (botIsPunching == 0 && botIsJumping == 0 && botIsCrouching == 0)
+        {
+            bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterRight.png");
+        }
+        else if (botIsJumping == 1 && botIsPunching == 0)
+        {
+            //jumping
+            bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterJumpingRight.png");
+        }
+        else if (botIsJumping == 1 && botIsPunching == 1)
+        {
+            //jumping and punching
+            bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterJumpPunchRight.png");
+            if (Raylib.CheckCollisionRecs(bCharacter.botPlace, pCharacter.playerPlace))
+            {
+                //if bot hits the player when punching
+                pCharacter.hp -= generator.Next(bCharacter.punchDamageMin, bCharacter.punchDamageMax);
+                botHit = 1;
+            }
+        }
+        else if (botIsPunching == 1)
+        {
+            //just punching on ground
+            bCharacter.botCharacter = Raylib.LoadTexture($"{bot}/CharacterPunchingRight.png");
+            //Damage for punching
+            if (Raylib.CheckCollisionRecs(bCharacter.botPlace, pCharacter.playerPlace))
+            {
+                //if the bot hits the player while punching
+                pCharacter.hp -= generator.Next(bCharacter.punchDamageMin, bCharacter.punchDamageMax);
+                botHit = 1;
+            }
+        }
+    }
+
+    public void BotsCharacter(Bot b, Bot bAce, Bot bBee, Bot bDuck, Bot bNaughty, Bot bIce, Bot bEdgy, Bot bTokyo, ref Bot bCharacter, ref string bot, int botChoice)
     {
         if (botChoice == 1)
         {
             bCharacter = b;
             bot = "AverageMan";
+            bCName = "Average Man";
+            bCharacter.botPlace = new Rectangle(1820, bCharacter.bYMax, 100, 200);
         }
         if (botChoice == 2)
         {
             bCharacter = bIce;
             bot = "ChillBro";
+            bCName = "Chill Bro";
+            bCharacter.botPlace = new Rectangle(1820, bCharacter.bYMax, 100, 200);
         }
         if (botChoice == 3)
         {
             bCharacter = bEdgy;
             bot = "PhantomBuckaroo";
+            bCName = "Phantom Buckaroo";
+            bCharacter.botPlace = new Rectangle(1820, bCharacter.bYMax, 100, 200);
         }
         if (botChoice == 4)
         {
             bCharacter = bTokyo;
             bot = "WalmartBruceLee";
+            bCName = "Walmart Bruce Lee";
+            bCharacter.botPlace = new Rectangle(1820, bCharacter.bYMax, 100, 200);
         }
         if (botChoice == 5)
         {
             bCharacter = bAce;
             bot = "JackOfAllTrades";
+            bCName = "Jack Of All Trades";
+            bCharacter.botPlace = new Rectangle(1820, bAce.bYMax, 100, 200);
+        }
+        if (botChoice == 6)
+        {
+            bCharacter = bBee;
+            bot = "HonkBee";
+            bCName = "Honk Bee";
+            bCharacter.botPlace = new Rectangle(1820, bCharacter.bYMax, 100, 200);
+        }
+        if (botChoice == 7)
+        {
+            bCharacter = bDuck;
+            bot = "GeneralDuckington";
+            bCName = "General Duckington";
+            bCharacter.botPlace = new Rectangle(1820, bCharacter.bYMax, 100, 200);
+        }
+        if (botChoice == 8)
+        {
+            bCharacter = bNaughty;
+            bot = "NaughtySmasher";
+            bCName = "Naughty Smasher";
+            bCharacter.botPlace = new Rectangle(1820, bNaughty.bYMax, 100, 200);
         }
     }
 }
