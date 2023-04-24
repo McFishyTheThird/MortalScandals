@@ -1,5 +1,5 @@
-Kolla om spelaren är på slagtillstånd
-    kolla om attack är på cooldown eller ej
+Kolla med if sats om spelaren är på slagtillstånd
+    använd if sats kolla om attack är på cooldown eller ej
         Om spelaren är inom räckhåll och attackering har ingen cooldown längre
             Slå spelaren
             återställ attackens cooldown
@@ -7,5 +7,3 @@ Kolla om spelaren är på slagtillstånd
                 Ge spelaren skada
                 Ge spelaren knockback
                 få spelaren att åka backåt när den har knockback
-
-
