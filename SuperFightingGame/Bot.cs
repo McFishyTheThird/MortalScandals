@@ -80,52 +80,12 @@ public class Bot
     //Escaping when on low hp(determined by randomiser if it retreats or not)
     public void Retreat(Player pCharacter, Bot bCharacter)
     {
-        if (timer <= 3)
-        {
-            timer += Raylib.GetFrameTime();
-        }
-        if (timer >= 3)
-        {
-            run = generator.Next(1, 4);
-        }
-        if (run == 1)
-        {
-            running = 1;
-            run = 0;
-            if (timer >= 3)
-            {
-                timer = generator.Next(1, 3);
-            }
-        }
-        else if (run == 2)
-        {
-            running = 0;
-            run = 0;
-            if (timer >= 3)
-            {
-                timer = generator.Next(0, 2);
-            }
-        }
-        else if (run == 3)
-        {
-            running = 2;
-            run = 0;
-            if (timer >= 3)
-            {
-                timer = 2.5f;
-            }
-        }
+        Timer();
+        DirectionChoice();
+        RunningChoice();
         if (running == 1)
         {
-            //moving away from the player depending on which side the player is on
-            if (pCharacter.playerPlace.x > bCharacter.botPlace.x + 100)
-            {
-                bCharacter.botPlace.x -= speed;
-            }
-            else if (pCharacter.playerPlace.x < bCharacter.botPlace.x - 100)
-            {
-                bCharacter.botPlace.x += speed;
-            }
+            RunningAway(pCharacter, bCharacter);
         }
         else if (running == 0)
         {
@@ -133,6 +93,11 @@ public class Bot
         }
         //Keeping the bot from escaping
         //it stops a little before the actual edge of the screen so that it might be able to escape if the player moves all the way to the edge
+        BotBarriers(bCharacter);
+    }
+
+    private static void BotBarriers(Bot bCharacter)
+    {
         if (bCharacter.botPlace.x >= 1820)
         {
             bCharacter.botPlace.x = 1820;
@@ -142,6 +107,97 @@ public class Bot
             bCharacter.botPlace.x = 0;
         }
     }
+
+    private void RunningAway(Player pCharacter, Bot bCharacter)
+    {
+        //moving away from the player depending on which side the player is on
+        if (pCharacter.playerPlace.x > bCharacter.botPlace.x + 100)
+        {
+            bCharacter.botPlace.x -= speed;
+        }
+        else if (pCharacter.playerPlace.x < bCharacter.botPlace.x - 100)
+        {
+            bCharacter.botPlace.x += speed;
+        }
+    }
+
+    private void RunningChoice()
+    {
+        if (run == 1)
+        {
+            Choice1();
+        }
+        else if (run == 2)
+        {
+            Choice2();
+        }
+        else if (run == 3)
+        {
+            Choice3();
+        }
+    }
+
+    private void Choice3()
+    {
+        running = 2;
+        run = 0;
+        ResetTimer3();
+    }
+
+    private void Choice2()
+    {
+        running = 0;
+        run = 0;
+        ResetTimer2();
+    }
+
+    private void Choice1()
+    {
+        running = 1;
+        run = 0;
+        ResetTimer1();
+    }
+
+    private void ResetTimer3()
+    {
+        if (timer >= 3)
+        {
+            timer = 2.5f;
+        }
+    }
+
+    private void ResetTimer2()
+    {
+        if (timer >= 3)
+        {
+            timer = generator.Next(0, 2);
+        }
+    }
+
+    private void ResetTimer1()
+    {
+        if (timer >= 3)
+        {
+            timer = generator.Next(1, 3);
+        }
+    }
+
+    private void DirectionChoice()
+    {
+        if (timer >= 3)
+        {
+            run = generator.Next(1, 4);
+        }
+    }
+
+    private void Timer()
+    {
+        if (timer <= 3)
+        {
+            timer += Raylib.GetFrameTime();
+        }
+    }
+
     //Jumping
     public void Jumping(Bot bCharacter, Player pCharacter)
     {

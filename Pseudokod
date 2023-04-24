@@ -1,0 +1,11 @@
+Kolla om spelaren är på slagtillstånd
+    kolla om attack är på cooldown eller ej
+        Om spelaren är inom räckhåll och attackering har ingen cooldown längre
+            Slå spelaren
+            återställ attackens cooldown
+            om spelaren blev träffad
+                Ge spelaren skada
+                Ge spelaren knockback
+                få spelaren att åka backåt när den har knockback
+
+

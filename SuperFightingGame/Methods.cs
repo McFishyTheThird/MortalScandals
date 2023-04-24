@@ -63,23 +63,29 @@ public class Methods
     int isLookingLeft = 0;
     int loadCharacter = 0;
     int punchHit = 0;
+    string trackCurrentScene;
+    Texture2D[] baguettes = { Raylib.LoadTexture("Baguette1.png"), Raylib.LoadTexture("Baguette2.png") };
 
     public void MortalScandals()
     {
         while (!Raylib.WindowShouldClose())
         {
+            Controls();
             if (currentScene == "start")
             {
                 Start();
-
+                TrackingScene();
+                Baguettes();
             }
             else if (currentScene == "selection")
             {
                 Selection();
+                TrackingScene();
             }
             else if (currentScene == "game")
             {
                 Game();
+                TrackingScene();
             }
             else if (currentScene == "end")
             {
@@ -91,10 +97,29 @@ public class Methods
                 //victory
                 pCharacter.Restart(pSecret, pCharacter, bCharacter, player, bot, ref currentScene, ref isJumping, ref isCrouching, ref isPunching, ref isLookingRight, ref isLookingLeft, ref punchHit);
             }
+            else if (currentScene == "controls")
+            {
+                DrawControls();
+            }
+            else if (currentScene == "baguettetime!!!")
+            {
+                BaguetteScene();
+            }
             Drawing();
         }
     }
 
+    private void BaguetteScene()
+    {
+        
+    }
+    private void Baguettes()
+    {
+        if(Raylib.IsKeyPressed(KeyboardKey.KEY_X))
+        {
+            currentScene = "baguettetime!!!";
+        }
+    }
     private void Drawing()
     {
         Raylib.BeginDrawing();
@@ -122,13 +147,57 @@ public class Methods
         }
         Raylib.EndDrawing();
     }
+    private void Controls()
+    {
+        if(Raylib.IsKeyPressed(KeyboardKey.KEY_Q))
+        {
+            currentScene = "controls";
+        }
+    }
+    private void DrawControls()
+    {
+        ReturnToGame();
+        Raylib.DrawText("CONTROLS:", 30, 30, 30, Color.BLACK);
+        Raylib.DrawText("Tab to restart or unpause", 30, 90, 30, Color.BLACK);
+        Raylib.DrawText("A,D to move left and right", 30, 60, 30, Color.BLACK);
+        Raylib.DrawText("J,L to Punch", 30, 120, 30, Color.BLACK);
+        Raylib.DrawText("W to Jump", 30, 150, 30, Color.BLACK);
+        Raylib.DrawText("S to Crouch (Does nothing)", 30, 180, 30, Color.BLACK);
+        Raylib.DrawText("Q to pause", 30, 210, 30, Color.BLACK);
+        Raylib.DrawText("GOALS:", 30, 270, 30, Color.BLACK);
+        Raylib.DrawText("Punch your opponent", 30, 300, 30, Color.BLACK);
+        Raylib.DrawText("Try to get your opponent to 0 hp", 30, 330, 30, Color.BLACK);
+        Raylib.DrawText("Try to stay above 0 hp", 30, 360, 30, Color.BLACK);
+        Raylib.DrawText("TIPS:", 30, 420, 30, Color.BLACK);
+        Raylib.DrawText("All characters have different stats", 30, 450, 30, Color.BLACK);
+        Raylib.DrawText("There are 8 characters to choose from", 30, 480, 30, Color.BLACK);
+        Raylib.DrawText("The opponents character is in the top right of the selection screen", 30, 510, 30, Color.BLACK);
+        Raylib.DrawText("You start to the left", 30, 540, 30, Color.BLACK);
+        Raylib.DrawText("The opponent starts to the right", 30, 570, 30, Color.BLACK);
+        Raylib.DrawText("The opponent is an bad AI", 30, 600, 30, Color.BLACK);
+        Raylib.DrawText("Tab to go back", 500, 800, 60, Color.BLACK);
+    }
+ 
+    private void ReturnToGame()
+    {
+        if (Raylib.IsKeyPressed(KeyboardKey.KEY_TAB))
+        {
+            currentScene = trackCurrentScene;
+        }
+    }
 
     private void VictoryDraw()
     {
         //victory screen
         Raylib.DrawTexture(victory, 0, 0, Color.WHITE);
     }
-
+    private void TrackingScene()
+    {
+        if (trackCurrentScene != currentScene)
+        {
+            trackCurrentScene = currentScene;
+        }
+    }
     private static void EndDraw()
     {
         //end screen
@@ -168,6 +237,7 @@ public class Methods
     {
         //start screen
         Raylib.DrawTexture(startBG, 0, 0, Color.WHITE);
+        Raylib.DrawText("Q to see controls", 400, 50, 60, Color.WHITE);
     }
 
     private void Game()
@@ -175,25 +245,133 @@ public class Methods
         pCharacter.Restart(pSecret, pCharacter, bCharacter, player, bot, ref currentScene, ref isJumping, ref isCrouching, ref isPunching, ref isLookingRight, ref isLookingLeft, ref punchHit);
         bCharacter.Retreat(pCharacter, bCharacter);
         ResetingPunch();
-        if (bCharacter.punchCooldown >= bCharacter.punchCooldownMax - bCharacter.punchCooldownMax / 4 && bCharacter.botIsPunching == 1)
-        {
-            bCharacter.botIsPunching = 0;
-            if (bCharacter.looking == Bot.Direction.left && bCharacter.botIsJumping == 0)
-            {
-                bCharacter.botPlace.x += 100;
-            }
-            else if (bCharacter.looking == Bot.Direction.left && bCharacter.botIsJumping == 1)
-            {
-                bCharacter.botPlace.x += 50;
-            }
-            bCharacter.loadBotCharacter = 1;
-        }
+        ResetingBotPunch();
         pCharacter.LoadCharacter(pCharacter, bCharacter, player, isJumping, isCrouching, ref isPunching, isLookingRight, isLookingLeft, ref loadCharacter, ref punchHit, generator);
         bCharacter.LoadCharacter(pCharacter, bCharacter, bot);
         bCharacter.LeftRight(pCharacter, bCharacter);
         //Bot Jump
         bCharacter.Jumping(bCharacter, pCharacter);
         //jumpbutton
+        Jumping();
+        //moving to the left
+        Direction();
+        Movement();
+        Crouching();
+        Boundries();
+        PunchCooldown();
+        Attacking();
+        punchHit = pCharacter.KnockBack(pCharacter, bCharacter, ground, isLookingRight, punchHit);
+        BotPunchCooldown();
+        BotAttackLeft();
+        BotAttackRight();
+        KnockBack();
+        Punching();
+        Ending();
+    }
+
+    private void BotAttackRight()
+    {
+        if (pCharacter.playerPlace.x <= bCharacter.botPlace.x + bCharacter.botCharacter.width + 20 && isLookingLeft == 1 && bCharacter.looking == Bot.Direction.right)
+        {
+            if (bCharacter.punchCooldown >= bCharacter.punchCooldownMax)
+            {
+                bCharacter.AttackRight(pCharacter, bCharacter, generator);
+                bCharacter.punchCooldown = 0;
+            }
+        }
+    }
+
+    private void BotAttackLeft()
+    {
+        //Bot attack
+        if (pCharacter.playerPlace.x >= bCharacter.botPlace.x - bCharacter.botCharacter.width - 20 && isLookingRight == 1 && bCharacter.looking == Bot.Direction.left && bCharacter.punchCooldown >= bCharacter.punchCooldownMax)
+        {
+            if (bCharacter.punchCooldown >= bCharacter.punchCooldownMax)
+            {
+                bCharacter.AttackLeft(pCharacter, bCharacter, generator);
+                bCharacter.punchCooldown = 0;
+            }
+        }
+    }
+
+    private void BotPunchCooldown()
+    {
+        if (bCharacter.punchCooldown <= bCharacter.punchCooldownMax)
+        {
+            bCharacter.punchCooldown += Raylib.GetFrameTime();
+        }
+    }
+
+    private void Attacking()
+    {
+        //punching
+        if (punchHit == 1)
+        {
+            bCharacter.botPlace.x -= pCharacter.knockback;
+            pCharacter.knockback -= 0.5f;
+            if (pCharacter.knockback <= 0)
+            {
+                punchHit = 0;
+                pCharacter.knockback = generator.Next((int)pCharacter.knockbackMin, (int)pCharacter.knockbackMax);
+            }
+            if (bCharacter.botPlace.x <= 0)
+            {
+                bCharacter.botPlace.x = 0;
+            }
+        }
+    }
+
+    private void PunchCooldown()
+    {
+        //punchcooldown
+        if (pCharacter.punchCooldown < pCharacter.punchCooldownMax)
+        {
+            pCharacter.punchCooldown += Raylib.GetFrameTime();
+        }
+    }
+
+    private void Boundries()
+    {
+        //can't go outside the left wall
+        if (pCharacter.playerPlace.x < 0)
+        {
+            pCharacter.playerPlace.x = 0;
+        }
+        //can't go outside the right wall
+        if (pCharacter.playerPlace.x > 1920 - pCharacter.playerPlace.width)
+        {
+            pCharacter.playerPlace.x = 1920 - pCharacter.playerPlace.width;
+        }
+    }
+
+    private void Direction()
+    {
+        DirectionRight();
+        DirectionLeft();
+    }
+
+    private void DirectionRight()
+    {
+        if (pCharacter.playerPlace.x < bCharacter.botPlace.x && isLookingRight == 0 && isPunching == 0 && isJumping == 0)
+        {
+            isLookingRight = 1;
+            isLookingLeft = 0;
+            loadCharacter = 1;
+        }
+    }
+
+    private void DirectionLeft()
+    {
+        if (pCharacter.playerPlace.x > bCharacter.botPlace.x && isLookingLeft == 0 && isPunching == 0 && isJumping == 0)
+        {
+            isLookingRight = 0;
+            isLookingLeft = 1;
+            loadCharacter = 1;
+        }
+    }
+
+    private void Jumping()
+    {
         if (Raylib.IsKeyPressed(KeyboardKey.KEY_W) && isPunching == 0 || Raylib.IsKeyDown(KeyboardKey.KEY_W) && isJumping == 0 && isPunching == 0)
         {
             isJumping = 1;
@@ -222,76 +400,23 @@ public class Methods
                 }
             }
         }
-        //moving to the left
-        if (pCharacter.playerPlace.x < bCharacter.botPlace.x && isLookingRight == 0 && isPunching == 0 && isJumping == 0)
+    }
+
+    private void ResetingBotPunch()
+    {
+        if (bCharacter.punchCooldown >= bCharacter.punchCooldownMax - bCharacter.punchCooldownMax / 4 && bCharacter.botIsPunching == 1)
         {
-            isLookingRight = 1;
-            isLookingLeft = 0;
-            loadCharacter = 1;
-        }
-        if (pCharacter.playerPlace.x > bCharacter.botPlace.x && isLookingLeft == 0 && isPunching == 0 && isJumping == 0)
-        {
-            isLookingRight = 0;
-            isLookingLeft = 1;
-            loadCharacter = 1;
-        }
-        Movement();
-        Crouching();
-        //can't go outside the left wall
-        if (pCharacter.playerPlace.x < 0)
-        {
-            pCharacter.playerPlace.x = 0;
-        }
-        //can't go outside the right wall
-        if (pCharacter.playerPlace.x > 1920 - pCharacter.playerPlace.width)
-        {
-            pCharacter.playerPlace.x = 1920 - pCharacter.playerPlace.width;
-        }
-        //punchcooldown
-        if (pCharacter.punchCooldown < pCharacter.punchCooldownMax)
-        {
-            pCharacter.punchCooldown += Raylib.GetFrameTime();
-        }
-        //punching left
-        if (punchHit == 1 && isLookingLeft == 1)
-        {
-            bCharacter.botPlace.x -= pCharacter.knockback;
-            pCharacter.knockback -= 0.5f;
-            if (pCharacter.knockback <= 0)
+            bCharacter.botIsPunching = 0;
+            if (bCharacter.looking == Bot.Direction.left && bCharacter.botIsJumping == 0)
             {
-                punchHit = 0;
-                pCharacter.knockback = generator.Next((int)pCharacter.knockbackMin, (int)pCharacter.knockbackMax);
+                bCharacter.botPlace.x += 100;
             }
-            if (bCharacter.botPlace.x <= 0)
+            else if (bCharacter.looking == Bot.Direction.left && bCharacter.botIsJumping == 1)
             {
-                bCharacter.botPlace.x = 0;
+                bCharacter.botPlace.x += 50;
             }
+            bCharacter.loadBotCharacter = 1;
         }
-        punchHit = pCharacter.KnockBack(pCharacter, bCharacter, ground, isLookingRight, punchHit);
-        if (bCharacter.punchCooldown <= bCharacter.punchCooldownMax)
-        {
-            bCharacter.punchCooldown += Raylib.GetFrameTime();
-        }
-        //Bot attack
-        if (pCharacter.playerPlace.x >= bCharacter.botPlace.x - bCharacter.botCharacter.width - 20 && isLookingRight == 1 && bCharacter.looking == Bot.Direction.left && bCharacter.punchCooldown >= bCharacter.punchCooldownMax)
-        {
-            if (bCharacter.punchCooldown >= bCharacter.punchCooldownMax)
-            {
-                bCharacter.AttackLeft(pCharacter, bCharacter, generator);
-                bCharacter.punchCooldown = 0;
-            }
-        }
-        if (pCharacter.playerPlace.x <= bCharacter.botPlace.x + bCharacter.botCharacter.width + 20 && isLookingLeft == 1 && bCharacter.looking == Bot.Direction.right)
-        {
-            if (bCharacter.punchCooldown >= bCharacter.punchCooldownMax)
-            {
-                bCharacter.AttackRight(pCharacter, bCharacter, generator);
-                bCharacter.punchCooldown = 0;
-            }
-        }
-        KnockBack();
-        Punching();
-        Ending();
     }
 
     private void ResetingPunch()
